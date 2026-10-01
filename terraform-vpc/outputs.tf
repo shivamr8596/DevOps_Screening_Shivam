@@ -17,3 +17,8 @@ output "route_table_id" {
   description = "ID of the secondary routing table"
   value       = aws_route_table.public.id
 }
+
+output "ec2_instance_public_ip" {
+  description = "Public IP of the EC2 instance created."
+  value       = aws_instance.windows_machine.public_ip
+}
