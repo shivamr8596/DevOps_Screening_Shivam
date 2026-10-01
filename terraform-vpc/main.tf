@@ -76,3 +76,62 @@ resource "aws_route_table_association" "public_subnet_asso" {
 
   route_table_id = aws_route_table.public.id
 }
+
+resource "tls_private_key" "rdp_kp" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "rdp_kp" {
+  key_name   = "rdp_kp"
+  public_key = tls_private_key.rdp_kp.public_key_openssh
+}
+
+resource "local_file" "private_key" {
+  content         = tls_private_key.rdp_kp.private_key_pem
+  filename        = "C:/Users/Windows/.ssh/ECinstance.pem"
+  file_permission = "0040"
+}
+
+resource "aws_security_group" "rdp" {
+  name        = "rdp-security-group"
+  description = "Allow RDP only from fixed IP."
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "RDP IP"
+    from_port   = 3389
+    to_port     = 3389
+    protocol    = "tcp"
+
+    cidr_blocks = var.My_IP
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "rdp-security-group"
+  }
+}
+
+resource "aws_instance" "windows_machine" {
+  ami           = data.aws_ami.windows.id
+  instance_type = "t3.micro"
+
+  subnet_id = aws_subnet.public[0].id
+
+  vpc_security_group_ids = [aws_security_group.rdp.id]
+
+  associate_public_ip_address = true
+
+  key_name = aws_key_pair.rdp_kp.key_name
+
+  tags = {
+    Name = "Windows-RDP"
+  }
+} 
