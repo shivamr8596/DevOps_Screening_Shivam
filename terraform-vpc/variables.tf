@@ -1,6 +1,7 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
+  default     = "us-east-1"
 
   validation {
     condition = contains([
@@ -15,11 +16,13 @@ variable "aws_region" {
 variable "aws_vpc_cidr" {
   description = "VPC cidr block"
   type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_cidrs" {
   description = "Public cidr blocks"
   type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 
   validation {
     condition     = length(var.public_subnet_cidrs) >= 3
@@ -30,7 +33,7 @@ variable "public_subnet_cidrs" {
 variable "private_subnet_cidrs" {
   description = "Private cidr blocks"
   type        = list(string)
-
+  default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
   validation {
     condition     = length(var.private_subnet_cidrs) >= 3
     error_message = "Atleast 3 private subnet cidr blocks required."
@@ -40,6 +43,7 @@ variable "private_subnet_cidrs" {
 variable "vpc_availability_zones" {
   description = "VPC availability zones"
   type        = list(string)
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
   validation {
     condition     = length(var.vpc_availability_zones) >= 3
@@ -50,14 +54,63 @@ variable "vpc_availability_zones" {
 variable "destination_cidr_block" {
   description = "The destination cidr block for public internet access."
   type        = string
+  default     = "0.0.0.0/0"
 }
 
-variable "My_IP" {
+variable "allowed_ips" {
   description = "Public IP to allow"
   type        = list(string)
+  default     = ["132.154.64.35/32"]
 
   validation {
-    condition     = length(var.My_IP) >= 1
+    condition     = length(var.allowed_ips) >= 1
     error_message = "Atleast 1 IP is required."
   }
+}
+
+variable "instance_type" {
+  description = "The type of EC2 instance to create."
+  type        = string
+  default     = "t3.micro"
+
+  validation {
+    condition = contains([
+      "t3.nano", "t3.micro", "t3.small", "t3.medium",
+      "t3.large", "t3.xlarge", "t3.2xlarge"
+    ], var.instance_type)
+
+    error_message = "Provide a valid t3 instance."
+  }
+}
+
+variable "ec2_ingress_rules" {
+  description = "Ingress Rules for allowing specific IPs for RDP for EC2 instance."
+  type = list(object({
+    description = string
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+
+  default = null
+}
+
+variable "ec2_egress_rules" {
+  description = "Egress Rules for EC2 instance."
+  type = list(object({
+    description = string
+    from_port   = number
+    to_port     = number
+    protocol    = number
+    cidr_blocks = list(string)
+  }))
+
+  default = [{
+    description = "EC2 instance egress rules."
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }]
 }

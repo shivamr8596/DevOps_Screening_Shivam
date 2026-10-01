@@ -87,31 +87,60 @@ resource "aws_key_pair" "rdp_kp" {
   public_key = tls_private_key.rdp_kp.public_key_openssh
 }
 
-resource "local_file" "private_key" {
-  content         = tls_private_key.rdp_kp.private_key_pem
-  filename        = "C:/Users/Windows/.ssh/ECinstance.pem"
-  file_permission = "0040"
+resource "aws_secretsmanager_secret" "private_key" {
+  name        = "ec2-private-key-1"
+  description = "Private SSH key for EC2 instances"
 }
+
+resource "aws_secretsmanager_secret_version" "private_key_val" {
+  secret_id     = aws_secretsmanager_secret.private_key.id
+  secret_string = tls_private_key.rdp_kp.private_key_pem
+}
+
+
+
+
+locals {
+  ingress_rules = var.ec2_ingress_rules != null ? var.ec2_ingress_rules : [
+    {
+      description = "EC2 instance ingress rules."
+      from_port   = 3389
+      to_port     = 3389
+      protocol    = "tcp"
+      cidr_blocks = var.allowed_ips
+    }
+  ]
+}
+
 
 resource "aws_security_group" "rdp" {
   name        = "rdp-security-group"
   description = "Allow RDP only from fixed IP."
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description = "RDP IP"
-    from_port   = 3389
-    to_port     = 3389
-    protocol    = "tcp"
+  dynamic "ingress" {
+    for_each = var.ec2_ingress_rules != null ? var.ec2_ingress_rules : local.ingress_rules
 
-    cidr_blocks = var.My_IP
+    content {
+      description = ingress.value.description
+      from_port   = ingress.value.from_port
+      to_port     = ingress.value.to_port
+      protocol    = ingress.value.protocol
+
+      cidr_blocks = ingress.value.cidr_blocks
+    }
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "egress" {
+    for_each = var.ec2_egress_rules
+
+    content {
+      description = egress.value.description
+      from_port   = egress.value.from_port
+      to_port     = egress.value.to_port
+      protocol    = egress.value.protocol
+      cidr_blocks = egress.value.cidr_blocks
+    }
   }
 
   tags = {
@@ -123,7 +152,7 @@ resource "aws_security_group" "rdp" {
 
 resource "aws_instance" "windows_machine" {
   ami           = data.aws_ami.windows.id
-  instance_type = "t3.micro"
+  instance_type = var.instance_type
 
   subnet_id = aws_subnet.public[0].id
 
