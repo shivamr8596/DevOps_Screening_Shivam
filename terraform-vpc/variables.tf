@@ -52,15 +52,9 @@ variable "destination_cidr_block" {
   type        = string
 }
 
-variable "destination_cidr_block" {
-  description = "The destination cidr block for public internet access."
-  type        = string
-}
-
 variable "My_IP" {
   description = "Public IP to allow"
   type        = list(string)
-  default     = ["132.154.64.35/32"]
 
   validation {
     condition     = length(var.My_IP) >= 1

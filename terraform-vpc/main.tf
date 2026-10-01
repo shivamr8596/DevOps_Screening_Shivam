@@ -115,7 +115,9 @@ resource "aws_security_group" "rdp" {
   }
 
   tags = {
-    Name = "rdp-security-group"
+    Name        = "rdp-security-group"
+    Environment = "Development"
+    Project     = "DevOps Screening"
   }
 }
 
@@ -132,6 +134,8 @@ resource "aws_instance" "windows_machine" {
   key_name = aws_key_pair.rdp_kp.key_name
 
   tags = {
-    Name = "Windows-RDP"
+    Name        = "Windows-RDP"
+    Environment = "Development"
+    Project     = "DevOps Screening"
   }
-} 
+}
