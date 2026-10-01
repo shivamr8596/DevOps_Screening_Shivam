@@ -5,7 +5,9 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "vpc"
+    Name        = "vpc"
+    Environment = "Development"
+    Project     = "DevOps Screening"
   }
 }
 
@@ -18,7 +20,9 @@ resource "aws_subnet" "public" {
   availability_zone = element(var.vpc_availability_zones, count.index)
 
   tags = {
-    Name = "Public Subnet ${count.index + 1}"
+    Name        = "Public Subnet ${count.index + 1}"
+    Environment = "Development"
+    Project     = "DevOps Screening"
   }
 }
 
@@ -31,7 +35,9 @@ resource "aws_subnet" "private" {
   availability_zone = element(var.vpc_availability_zones, count.index)
 
   tags = {
-    Name = "Private Subnet ${count.index + 1}"
+    Name        = "Private Subnet ${count.index + 1}"
+    Environment = "Development"
+    Project     = "DevOps Screening"
   }
 }
 
@@ -39,27 +45,34 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "internet-gateway"
+    Name        = "internet-gateway"
+    Environment = "Development"
+    Project     = "DevOps Screening"
   }
 }
 
-resource "aws_route_table" "rt" {
+resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
-
   tags = {
-    Name = "Route Table"
+    Name        = "Route Table"
+    Environment = "Development"
+    Project     = "DevOps Screening"
   }
+}
+
+resource "aws_route" "public_internet_access" {
+  route_table_id = aws_route_table.public.id
+
+  destination_cidr_block = var.destination_cidr_block
+  gateway_id             = aws_internet_gateway.main.id
+
 }
 
 resource "aws_route_table_association" "public_subnet_asso" {
   count = length(var.public_subnet_cidrs)
 
-  subnet_id = element(aws_subnet.public[*].id, count.index)
+  subnet_id = aws_subnet.public[count.index].id
 
-  route_table_id = aws_route_table.rt.id
+  route_table_id = aws_route_table.public.id
 }

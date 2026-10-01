@@ -1,7 +1,6 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"
 
   validation {
     condition = contains([
@@ -16,13 +15,11 @@ variable "aws_region" {
 variable "aws_vpc_cidr" {
   description = "VPC cidr block"
   type        = string
-  default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_cidrs" {
   description = "Public cidr blocks"
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 
   validation {
     condition     = length(var.public_subnet_cidrs) >= 3
@@ -33,7 +30,6 @@ variable "public_subnet_cidrs" {
 variable "private_subnet_cidrs" {
   description = "Private cidr blocks"
   type        = list(string)
-  default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 
   validation {
     condition     = length(var.private_subnet_cidrs) >= 3
@@ -44,10 +40,14 @@ variable "private_subnet_cidrs" {
 variable "vpc_availability_zones" {
   description = "VPC availability zones"
   type        = list(string)
-  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
   validation {
     condition     = length(var.vpc_availability_zones) >= 3
     error_message = "Atleast 3 availability zones required."
   }
+}
+
+variable "destination_cidr_block" {
+  description = "The destination cidr block for public internet access."
+  type        = string
 }
