@@ -102,7 +102,7 @@ variable "ec2_egress_rules" {
     description = string
     from_port   = number
     to_port     = number
-    protocol    = number
+    protocol    = string
     cidr_blocks = list(string)
   }))
 

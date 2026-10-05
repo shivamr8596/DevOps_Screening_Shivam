@@ -10,6 +10,15 @@ resource "aws_instance" "windows_machine" {
 
   key_name = aws_key_pair.rdp_kp.key_name
 
+  root_block_device {
+    volume_size           = 40
+    volume_type           = "gp3"
+    iops                  = 6000
+    throughput            = 250
+    encrypted             = true
+    delete_on_termination = true
+  }
+
   tags = {
     Name        = "Windows-RDP"
     Environment = "Development"
