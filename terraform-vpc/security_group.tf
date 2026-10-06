@@ -1,7 +1,7 @@
 resource "aws_security_group" "rdp" {
   name        = "rdp-security-group"
   description = "Allow RDP only from fixed IP."
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   tags = {
     Name        = "rdp-security-group"
