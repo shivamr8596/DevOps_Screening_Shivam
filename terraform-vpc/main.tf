@@ -9,7 +9,7 @@ resource "aws_key_pair" "rdp_kp" {
 }
 
 resource "aws_secretsmanager_secret" "private_key" {
-  name        = "ec2-private-key-11"
+  name        = "ec2-private-key-13"
   description = "Private SSH key for EC2 instances"
 }
 

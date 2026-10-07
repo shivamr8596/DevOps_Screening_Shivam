@@ -59,7 +59,7 @@ variable "destination_cidr_block" {
 
 variable "allowed_ips" {
   description = "Public IP to allow"
-  type        = list(string)
+  type        = set(string)
   default     = ["132.154.64.35/32"]
 
   validation {

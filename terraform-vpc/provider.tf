@@ -23,4 +23,5 @@ module "vpc" {
   private_subnet_cidrs   = var.private_subnet_cidrs
   vpc_availability_zones = var.vpc_availability_zones
   destination_cidr_block = var.destination_cidr_block
+  allowed_ips            = var.allowed_ips
 }
