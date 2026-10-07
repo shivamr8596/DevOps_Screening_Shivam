@@ -76,3 +76,68 @@ resource "aws_route_table_association" "public_subnet_asso" {
 
   route_table_id = aws_route_table.public.id
 }
+
+resource "aws_network_acl" "public" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name        = "Public NACL"
+    Environment = "Development"
+    Project     = "DevOps Screening"
+  }
+}
+
+resource "aws_network_acl_rule" "public_inbound_rdp" {
+  for_each = var.allowed_ips
+
+  network_acl_id = aws_network_acl.public.id
+
+  rule_number = 100 + index(
+    sort(tolist(var.allowed_ips)),
+    each.value
+  )
+
+  egress      = false
+  protocol    = "tcp"
+  rule_action = "allow"
+
+  cidr_block = each.value
+
+  from_port = 3389
+  to_port   = 3389
+}
+
+resource "aws_network_acl_rule" "public_inbound_ephemeral" {
+  network_acl_id = aws_network_acl.public.id
+
+  rule_number = 200
+  egress      = false
+  protocol    = "tcp"
+  rule_action = "allow"
+
+  cidr_block = "0.0.0.0/0"
+
+  from_port = 1024
+  to_port   = 65535
+}
+
+
+resource "aws_network_acl_rule" "public_outbound" {
+  network_acl_id = aws_network_acl.public.id
+
+  rule_number = 100
+  egress      = true
+
+  protocol    = "-1"
+  rule_action = "allow"
+
+  cidr_block = "0.0.0.0/0"
+}
+
+
+resource "aws_network_acl_association" "public" {
+  count = length(var.public_subnet_cidrs)
+
+  network_acl_id = aws_network_acl.public.id
+  subnet_id      = aws_subnet.public[count.index].id
+}

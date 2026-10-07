@@ -56,3 +56,8 @@ variable "destination_cidr_block" {
   type        = string
   default     = "0.0.0.0/0"
 }
+
+variable "allowed_ips" {
+  description = "IPs allowed for RDP"
+  type = set(string)
+}
