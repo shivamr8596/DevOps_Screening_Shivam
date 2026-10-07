@@ -1,78 +1,19 @@
-resource "aws_vpc" "main" {
-  cidr_block = var.aws_vpc_cidr
-
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name        = "vpc"
-    Environment = "Development"
-    Project     = "DevOps Screening"
-  }
+resource "tls_private_key" "rdp_kp" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
 }
 
-resource "aws_subnet" "public" {
-  count  = length(var.public_subnet_cidrs)
-  vpc_id = aws_vpc.main.id
-
-  cidr_block = element(var.public_subnet_cidrs, count.index)
-
-  availability_zone = element(var.vpc_availability_zones, count.index)
-
-  tags = {
-    Name        = "Public Subnet ${count.index + 1}"
-    Environment = "Development"
-    Project     = "DevOps Screening"
-  }
+resource "aws_key_pair" "rdp_kp" {
+  key_name   = "rdp_kp"
+  public_key = tls_private_key.rdp_kp.public_key_openssh
 }
 
-resource "aws_subnet" "private" {
-  count  = length(var.private_subnet_cidrs)
-  vpc_id = aws_vpc.main.id
-
-  cidr_block = element(var.private_subnet_cidrs, count.index)
-
-  availability_zone = element(var.vpc_availability_zones, count.index)
-
-  tags = {
-    Name        = "Private Subnet ${count.index + 1}"
-    Environment = "Development"
-    Project     = "DevOps Screening"
-  }
+resource "aws_secretsmanager_secret" "private_key" {
+  name        = "ec2-private-key-6"
+  description = "Private SSH key for EC2 instances"
 }
 
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name        = "internet-gateway"
-    Environment = "Development"
-    Project     = "DevOps Screening"
-  }
-}
-
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name        = "Route Table"
-    Environment = "Development"
-    Project     = "DevOps Screening"
-  }
-}
-
-resource "aws_route" "public_internet_access" {
-  route_table_id = aws_route_table.public.id
-
-  destination_cidr_block = var.destination_cidr_block
-  gateway_id             = aws_internet_gateway.main.id
-
-}
-
-resource "aws_route_table_association" "public_subnet_asso" {
-  count = length(var.public_subnet_cidrs)
-
-  subnet_id = aws_subnet.public[count.index].id
-
-  route_table_id = aws_route_table.public.id
+resource "aws_secretsmanager_secret_version" "private_key_val" {
+  secret_id     = aws_secretsmanager_secret.private_key.id
+  secret_string = tls_private_key.rdp_kp.private_key_pem
 }
