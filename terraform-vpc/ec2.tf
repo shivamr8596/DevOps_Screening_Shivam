@@ -1,26 +1,34 @@
-resource "aws_instance" "windows_machine" {
-  ami           = data.aws_ami.windows.id
-  instance_type = var.instance_type
+module "ec2" {
+  source = "./modules/ec2"
 
-  subnet_id = aws_subnet.public[0].id
+  instances = {
+    application = {
+      ami           = data.aws_ami.windows.id
+      instance_type = var.ec2_instance_type
+      name          = "application-server"
 
-  vpc_security_group_ids = [aws_security_group.rdp.id]
+      subnet_id = module.vpc.private_subnet_ids[0]
 
-  associate_public_ip_address = true
+      security_group_id = module.security_groups.ec2_security_group_id
 
-  key_name = aws_key_pair.rdp_kp.key_name
+      associate_public_ip_address = false
 
-  root_block_device {
-    volume_size           = 40
-    volume_type           = "gp3"
-    iops                  = 6000
-    throughput            = 250
-    encrypted             = true
-    delete_on_termination = true
+      key_name = aws_key_pair.ec2_kp.key_name
+
+      iam_instance_profile = aws_iam_instance_profile.ec2_ssm.name
+
+      root_block_device = {
+        volume_size           = var.ec2_root_volume_size
+        volume_type           = var.ec2_root_volume_type
+        iops                  = var.ec2_root_volume_iops
+        throughput            = var.ec2_root_volume_throughput
+        encrypted             = true
+        delete_on_termination = true
+      }
+    }
   }
 
   tags = {
-    Name        = "Windows-RDP"
     Environment = "Development"
     Project     = "DevOps Screening"
   }
