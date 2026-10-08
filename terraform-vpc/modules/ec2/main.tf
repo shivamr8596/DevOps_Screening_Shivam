@@ -14,6 +14,8 @@ resource "aws_instance" "instance" {
 
   key_name = each.value.key_name
 
+  iam_instance_profile = each.value.iam_instance_profile
+
   root_block_device {
     volume_size           = each.value.root_block_device.volume_size
     volume_type           = each.value.root_block_device.volume_type
@@ -23,9 +25,13 @@ resource "aws_instance" "instance" {
     delete_on_termination = each.value.root_block_device.delete_on_termination
   }
 
-  tags = {
-    Name        = each.value.name
-    Environment = "Development"
-    Project     = "DevOps Screening"
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
+
+  tags = merge(var.tags, {
+    Name = each.value.name
+  })
 }
+

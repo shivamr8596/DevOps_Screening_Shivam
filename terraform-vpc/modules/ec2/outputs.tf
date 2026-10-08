@@ -24,3 +24,4 @@ output "instance_ids" {
     name => instance.id
   }
 }
+

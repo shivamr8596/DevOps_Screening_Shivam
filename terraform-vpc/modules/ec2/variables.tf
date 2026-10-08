@@ -1,5 +1,5 @@
 variable "instances" {
-  description = "EC2 instances to create"
+  description = "EC2 instances to create."
 
   type = map(object({
     ami                         = string
@@ -9,6 +9,7 @@ variable "instances" {
     security_group_id           = string
     associate_public_ip_address = bool
     key_name                    = string
+    iam_instance_profile        = string
 
     root_block_device = object({
       volume_size           = number
@@ -19,4 +20,10 @@ variable "instances" {
       delete_on_termination = bool
     })
   }))
+}
+
+variable "tags" {
+  description = "Common tags applied to EC2 instances."
+  type        = map(string)
+  default     = {}
 }
